@@ -12,7 +12,6 @@ import {
 import { useMemo, useState } from 'react';
 import type { BusinessService, ServiceCategory, ServicePackageLevel } from '../types/store';
 import type { ActiveView } from './Navbar';
-import { StorefrontFooter } from './StorefrontFooter';
 
 interface BusinessServicesSectionProps {
   services: BusinessService[];
@@ -553,11 +552,6 @@ export function BusinessServicesSection({
     </section>
     </main>
 
-    <StorefrontFooter
-      currentPage="business-services"
-      onSelectView={onSelectView}
-      onShowToast={onShowToast}
-    />
     </>
   );
 }
