@@ -1,6 +1,5 @@
 import type { LiveTvChannel, LiveTvPlan } from '../types/store';
 import type { ActiveView } from './Navbar';
-import { StorefrontFooter } from './StorefrontFooter';
 
 interface LiveTvSectionProps {
   channels: LiveTvChannel[];
@@ -57,7 +56,6 @@ export function LiveTvSection(_props: LiveTvSectionProps) {
           </div>
         </section>
       </main>
-      <StorefrontFooter />
     </>
   );
 }
