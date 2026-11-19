@@ -129,13 +129,35 @@ export default function App() {
   }, [cart]);
 
   useEffect(() => {
-    const onHashChange = () => {
-      setActiveView(readInitialViewFromHash());
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    const scrollToSection = (view: ActiveView, behavior: ScrollBehavior = 'smooth') => {
+      if (view === 'admin') {
+        window.scrollTo({ top: 0, behavior });
+        return;
+      }
+      const targetId =
+        view === 'business-services'
+          ? 'section2-services'
+          : view === 'live-tv'
+            ? 'section3-livetv'
+            : 'home';
+      window.requestAnimationFrame(() => {
+        document.getElementById(targetId)?.scrollIntoView({ behavior, block: 'start' });
+      });
     };
-    window.addEventListener('hashchange', onHashChange);
-    return () => window.removeEventListener('hashchange', onHashChange);
-  }, []);
+
+    const onLocationChange = () => {
+      const view = readInitialViewFromLocation();
+      setActiveView(view);
+      scrollToSection(view);
+    };
+    window.addEventListener('popstate', onLocationChange);
+    window.addEventListener('hashchange', onLocationChange);
+    if (activeView !== 'digital-store') scrollToSection(activeView, 'auto');
+    return () => {
+      window.removeEventListener('popstate', onLocationChange);
+      window.removeEventListener('hashchange', onLocationChange);
+    };
+  }, [activeView]);
 
   const fetchBuyerCatalog = useCallback(async () => {
     try {
