@@ -11,7 +11,7 @@ let lastSync: ElectronicFirstSyncResult = {
   balanceInfo: null,
 };
 
-const getBaseUrl = () => (process.env.ELECTRONICFIRST_API_BASE || 'https://www.electronicfirst.com/partners/api/v1').replace(/\\/+$/, '');
+const getBaseUrl = () => (process.env.ELECTRONICFIRST_API_BASE || 'https://www.electronicfirst.com/partners/api/v1').replace(/\/+$/, '');
 const getApiKey = () => process.env.ELECTRONICFIRST_API_KEY || '';
 
 function normalizePlatform(raw: string): ProductPlatform {
