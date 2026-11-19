@@ -68,13 +68,13 @@ export default function App() {
   const [activeView, setActiveView] = useState<ActiveView>(() => readInitialViewFromHash());
   const [adminInitialTab, setAdminInitialTab] = useState<AdminTab>('overview');
 
-  // Buyer-facing sanitized catalog (3 pages)
+  // Buyer-facing storefront catalog
   const [buyerDigitalProducts, setBuyerDigitalProducts] = useState<Product[]>([]);
   const [buyerBusinessServices, setBuyerBusinessServices] = useState<BusinessService[]>([]);
   const [buyerLiveTvChannels, setBuyerLiveTvChannels] = useState<LiveTvChannel[]>([]);
   const [buyerLiveTvPlans, setBuyerLiveTvPlans] = useState<LiveTvPlan[]>([]);
 
-  // Admin-only full catalog (includes hidden items, confidential supplier URLs & inquiries)
+  // Admin-only catalog and operational records
   const [adminDigitalProducts, setAdminDigitalProducts] = useState<Product[]>([]);
   const [adminBusinessServices, setAdminBusinessServices] = useState<BusinessService[]>([]);
   const [adminLiveTvChannels, setAdminLiveTvChannels] = useState<LiveTvChannel[]>([]);
@@ -302,7 +302,7 @@ export default function App() {
       />
 
       <div className="flex-1">
-        {/* PAGE 1 (LANDING PAGE): DIGITAL STORE & PRODUCTS */}
+        {/* Digital products storefront */}
         {activeView === 'digital-store' && (
           <StorefrontView
             digitalProducts={buyerDigitalProducts}
@@ -317,7 +317,7 @@ export default function App() {
           />
         )}
 
-        {/* PAGE 2: BUSINESS SERVICES */}
+        {/* Business services storefront */}
         {activeView === 'business-services' && (
           <BusinessServicesSection
             services={buyerBusinessServices}
@@ -328,7 +328,7 @@ export default function App() {
           />
         )}
 
-        {/* PAGE 3: PLAYBEAT LIVE TV */}
+        {/* PlayBeat Live TV storefront */}
         {activeView === 'live-tv' && (
           <LiveTvSection
             channels={buyerLiveTvChannels}
