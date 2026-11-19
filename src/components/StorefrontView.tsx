@@ -104,7 +104,7 @@ export function StorefrontView({
 
   const activeCategoryLabel = useMemo(() => {
     if (selectedCategory === 'all' && !searchQuery.trim()) {
-      return `All ${filteredProducts.length} verified ElectronicFirst products available in the PlayBeat catalogue.`;
+      return `Browse all ${filteredProducts.length} digital products available from PlayBeat.`;
     }
     const found = CATEGORY_TABS.find((t) => t.id === selectedCategory);
     const catPart = found && selectedCategory !== 'all' ? found.label : 'All Digital Products';
@@ -210,7 +210,7 @@ export function StorefrontView({
                 type="button"
                 onClick={() => {
                   setSelectedCategory('all');
-                              document.getElementById('digital-products-grid')?.scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('digital-products-grid')?.scrollIntoView({ behavior: 'smooth' });
                 }}
                 className="yb rounded-full px-7 h-10 inline-flex items-center text-[13px] font-bold"
               >
@@ -245,7 +245,7 @@ export function StorefrontView({
         </div>
       </section>
 
-      {/* ══════════════ PAGE 1 BODY: DIGITAL STORE & PRODUCTS ══════════════ */}
+
       <main id="main" className="max-w-[1180px] mx-auto px-4 sm:px-6 relative z-10 -mt-14">
         {/* 8-Column Glowing Category Bar */}
         <nav
@@ -386,7 +386,7 @@ export function StorefrontView({
           )}
         </section>
 
-        {/* Dedicated Page Cards to Navigate to Page 2 (Business Services) & Page 3 (LIVE TV) */}
+        {/* Explore more PlayBeat services and entertainment */}
         <section className="grid md:grid-cols-2 gap-4 mt-10">
           <div className="edge rounded-2xl p-5 flex items-center justify-between gap-4 hover:border-[#2f8bff] transition-all">
             <div>
@@ -453,7 +453,6 @@ export function StorefrontView({
               type="button"
               onClick={() => {
                 setSelectedCategory('all');
-                setShowAllGrid(true);
                 document.getElementById('digital-products-grid')?.scrollIntoView({ behavior: 'smooth' });
               }}
               className="yb rounded-full px-6 h-8 inline-flex items-center text-[12px] font-bold"
