@@ -659,6 +659,20 @@ async function startServer() {
     app.use(vite.middlewares);
   }
 
+  // Import the complete verified supplier catalogue on server startup.
+  // If the supplier is unavailable, keep the last saved catalogue unchanged.
+  try {
+    const initialSync = await syncElectronicFirstCatalog();
+    if (initialSync.sync.source === 'live_api' && initialSync.products.length > 0) {
+      replaceSyncedDigitalProducts(initialSync.products);
+      console.log(`PlayBeat catalogue initialized with ${initialSync.products.length} verified products.`);
+    } else {
+      console.warn(`PlayBeat catalogue startup sync skipped: ${initialSync.sync.message}`);
+    }
+  } catch (error) {
+    console.error('PlayBeat catalogue startup sync failed; existing catalogue was preserved.', error);
+  }
+
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Playbeat Digital server listening on http://localhost:${PORT}`);
   });
