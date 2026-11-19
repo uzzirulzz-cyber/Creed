@@ -74,7 +74,6 @@ export function StorefrontView({
   onShowToast,
 }: StorefrontViewProps) {
   const [selectedCategory, setSelectedCategory] = useState<CategoryFilterId>('all');
-  const [showAllGrid, setShowAllGrid] = useState(false);
 
   const filteredProducts = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -100,30 +99,21 @@ export function StorefrontView({
   }, [digitalProducts, selectedCategory, searchQuery]);
 
   const displayedProducts = useMemo(() => {
-    if (showAllGrid || selectedCategory !== 'all' || searchQuery.trim().length > 0) {
-      return filteredProducts;
-    }
-    const featured = filteredProducts.filter((p) => p.featured);
-    return featured.length >= 7 ? featured.slice(0, 7) : filteredProducts.slice(0, 7);
-  }, [filteredProducts, showAllGrid, selectedCategory, searchQuery]);
+    return filteredProducts;
+  }, [filteredProducts]);
 
   const activeCategoryLabel = useMemo(() => {
     if (selectedCategory === 'all' && !searchQuery.trim()) {
-      return showAllGrid
-        ? `Showing all ${filteredProducts.length} Playbeat Digital Worldwide products via verified affiliate partners.`
-        : 'Curated Playbeat Digital affiliate partner catalog. Genuine Worldwide keys with instant delivery.';
+      return `Browse all ${filteredProducts.length} digital products available from PlayBeat.`;
     }
     const found = CATEGORY_TABS.find((t) => t.id === selectedCategory);
     const catPart = found && selectedCategory !== 'all' ? found.label : 'All Digital Products';
     const searchPart = searchQuery.trim() ? ` matching "${searchQuery.trim()}"` : '';
     return `Showing ${filteredProducts.length} products in ${catPart}${searchPart}.`;
-  }, [selectedCategory, searchQuery, showAllGrid, filteredProducts.length]);
+  }, [selectedCategory, searchQuery, filteredProducts.length]);
 
   const handleCategoryClick = (id: CategoryFilterId) => {
     setSelectedCategory(id);
-    if (id === 'all') {
-      setShowAllGrid(true);
-    }
     const el = document.getElementById('digital-products-grid');
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
@@ -220,8 +210,7 @@ export function StorefrontView({
                 type="button"
                 onClick={() => {
                   setSelectedCategory('all');
-                  setShowAllGrid(true);
-                  document.getElementById('digital-products-grid')?.scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('digital-products-grid')?.scrollIntoView({ behavior: 'smooth' });
                 }}
                 className="yb rounded-full px-7 h-10 inline-flex items-center text-[13px] font-bold"
               >
@@ -256,7 +245,7 @@ export function StorefrontView({
         </div>
       </section>
 
-      {/* ══════════════ PAGE 1 BODY: DIGITAL STORE & PRODUCTS ══════════════ */}
+
       <main id="main" className="max-w-[1180px] mx-auto px-4 sm:px-6 relative z-10 -mt-14">
         {/* 8-Column Glowing Category Bar */}
         <nav
@@ -284,36 +273,20 @@ export function StorefrontView({
           })}
         </nav>
 
-        {/* Digital Products Grid (Affiliate Partner Catalog) */}
+        {/* Digital Products Grid */}
         <section id="digital-products-grid" className="scroll-mt-20">
           <div className="flex flex-wrap justify-between items-end mt-10 gap-4">
             <div>
               <p className="text-[#ffc928] text-[12px] font-bold tracking-wider uppercase flex items-center gap-1.5">
                 <BadgeCheck className="w-4 h-4 text-[#ffd958]" aria-hidden="true" />
-                PLAYBEAT DIGITAL STORE · AFFILIATE PARTNER CATALOG
+                PLAYBEAT DIGITAL · VERIFIED DIGITAL CATALOGUE
               </p>
               <h2 className="text-[clamp(1.7rem,5vw,2.5rem)] font-extrabold leading-tight mt-1">
-                Top Picks <span className="text-[#1ea0ff]">for You</span>
+                All Digital <span className="text-[#1ea0ff]">Products</span>
               </h2>
               <p className="mt-1 text-sm font-medium text-[#c8d3ea]">{activeCategoryLabel}</p>
             </div>
             <div className="flex items-center gap-4">
-              <button
-                type="button"
-                onClick={() => {
-                  if (selectedCategory !== 'all') {
-                    setSelectedCategory('all');
-                    setShowAllGrid(true);
-                  } else {
-                    setShowAllGrid((v) => !v);
-                  }
-                }}
-                className="text-[#1ea0ff] hover:text-[#ffd958] text-[12px] font-bold whitespace-nowrap transition-colors cursor-pointer"
-              >
-                {showAllGrid && selectedCategory === 'all'
-                  ? 'Show Top 7 Featured'
-                  : `View All ${digitalProducts.length} Digital Products →`}
-              </button>
             </div>
           </div>
 
@@ -336,13 +309,10 @@ export function StorefrontView({
           ) : (
             <div
               className={`grid gap-3 mt-5 ${
-                displayedProducts.length <= 7
-                  ? 'grid-cols-2 sm:grid-cols-4 lg:grid-cols-7'
-                  : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'
+                'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
               }`}
             >
               {displayedProducts.map((product) => {
-                const compact = displayedProducts.length <= 7;
                 return (
                   <article
                     key={product.sku}
@@ -367,7 +337,7 @@ export function StorefrontView({
                         src={product.imageUrl}
                         alt={product.name}
                         className={`w-full ${
-                          compact ? 'h-[78px]' : 'h-[126px]'
+                          'h-[126px]'
                         } object-cover group-hover:scale-105 transition-transform duration-300`}
                         loading="lazy"
                       />
@@ -416,7 +386,7 @@ export function StorefrontView({
           )}
         </section>
 
-        {/* Dedicated Page Cards to Navigate to Page 2 (Business Services) & Page 3 (LIVE TV) */}
+        {/* Explore more PlayBeat services and entertainment */}
         <section className="grid md:grid-cols-2 gap-4 mt-10">
           <div className="edge rounded-2xl p-5 flex items-center justify-between gap-4 hover:border-[#2f8bff] transition-all">
             <div>
@@ -483,7 +453,6 @@ export function StorefrontView({
               type="button"
               onClick={() => {
                 setSelectedCategory('all');
-                setShowAllGrid(true);
                 document.getElementById('digital-products-grid')?.scrollIntoView({ behavior: 'smooth' });
               }}
               className="yb rounded-full px-6 h-8 inline-flex items-center text-[12px] font-bold"
@@ -506,7 +475,7 @@ export function StorefrontView({
               '100% Genuine Worldwide Keys',
               'Instant Digital Key Delivery',
               'Rapid Gateway PKR & PayPal USD',
-              'Verified Affiliate Partner Pricing',
+              'Verified PlayBeat Retail Pricing',
               '24/7 Playbeat Customer Support',
             ].map((perk) => (
               <li key={perk} className="flex items-center gap-3 text-[13px]">
@@ -589,7 +558,7 @@ export function StorefrontView({
               { icon: ShieldCheck, title: 'Multi-Rail Checkout', desc: 'Rapid PKR, PayPal & Manual' },
               { icon: Headphones, title: '24/7 Support', desc: 'Dedicated Playbeat desk' },
               { icon: UserCheck, title: 'Business Agency', desc: '32 enterprise service packages' },
-              { icon: Diamond, title: 'Best Prices', desc: 'Direct affiliate partner savings' },
+              { icon: Diamond, title: 'Best Prices', desc: 'Competitive digital product pricing' },
             ].map((card) => {
               const Icon = card.icon;
               return (

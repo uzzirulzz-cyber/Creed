@@ -210,13 +210,13 @@ async function startServer() {
 
   app.post('/api/admin/electronicfirst/sync', async (_req, res) => {
     const result = await syncElectronicFirstCatalog();
-    const merged = replaceSyncedDigitalProducts(result.products);
+    const merged = result.sync.source === 'live_api' ? replaceSyncedDigitalProducts(result.products) : getAdminDigitalProducts();
     res.json({
       products: merged,
       sync: {
         ...result.sync,
-        productCount: merged.length,
-        message: `${result.sync.message} Synced to Playbeat Storefront Section 1.`,
+        productCount: result.sync.source === 'live_api' ? result.products.length : merged.filter((p) => p.supplierVerified === true).length,
+        message: result.sync.source === 'live_api' ? `${result.sync.message} Published to PlayBeat Section 1.` : `${result.sync.message} Existing verified catalogue was preserved.`,
       },
     });
   });
@@ -224,8 +224,8 @@ async function startServer() {
   // Backwards-compatible alias for admin tools
   app.post('/api/electronicfirst/sync', async (_req, res) => {
     const result = await syncElectronicFirstCatalog();
-    const merged = replaceSyncedDigitalProducts(result.products);
-    res.json({ products: merged, sync: { ...result.sync, productCount: merged.length } });
+    const merged = result.sync.source === 'live_api' ? replaceSyncedDigitalProducts(result.products) : getAdminDigitalProducts();
+    res.json({ products: merged, sync: { ...result.sync, productCount: result.sync.source === 'live_api' ? result.products.length : merged.filter((p) => p.supplierVerified === true).length, message: result.sync.source === 'live_api' ? `${result.sync.message} Published to PlayBeat Section 1.` : `${result.sync.message} Existing verified catalogue was preserved.` } });
   });
 
   app.post('/api/admin/products', (req, res) => {

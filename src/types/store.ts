@@ -26,7 +26,7 @@ export interface Product {
   name: string;
   category: ProductCategory;
   platform: ProductPlatform;
-  region: 'Worldwide';
+  region: string;
   originalPriceUsd: number;
   priceUsd: number;
   pricePkr: number;
@@ -42,6 +42,8 @@ export interface Product {
   featured?: boolean;
   published?: boolean;
   affiliatePartner?: boolean;
+  /** Set only after a product has been validated from the authenticated supplier feed. */
+  supplierVerified?: boolean;
 }
 
 export type ServiceCategory =
@@ -194,7 +196,7 @@ export interface OrderRecord {
 
 export interface ElectronicFirstSyncResult {
   syncedAt: string;
-  source: 'live_api' | 'catalog_snapshot';
+  source: 'live_api' | 'catalog_snapshot' | 'unavailable';
   apiConfigured: boolean;
   httpStatus: number | null;
   message: string;
