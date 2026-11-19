@@ -138,7 +138,7 @@ export async function syncElectronicFirstCatalog(): Promise<{ products: Product[
     let nextUrl: string | undefined;
     let finalStatus = 200;
     const visited = new Set<string>();
-    while (page <= lastPage && page <= 100) {
+    while ((nextUrl || page <= lastPage) && page <= 100) {
       const url = nextUrl ? new URL(nextUrl, baseUrl) : new URL(`${baseUrl}/products`);
       if (url.origin !== new URL(baseUrl).origin) throw new Error('Supplier pagination link points outside the configured API host; stopped safely.');
       if (!nextUrl && page > 1) {
