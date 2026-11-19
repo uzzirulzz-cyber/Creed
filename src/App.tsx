@@ -40,7 +40,13 @@ const DEFAULT_STORE_CONFIG: PublicStoreConfig = {
   },
 };
 
-function readInitialViewFromHash(): ActiveView {
+function readInitialViewFromLocation(): ActiveView {
+  const pathname = window.location.pathname.replace(/\/+$/, '').toLowerCase() || '/';
+  if (pathname === '/services' || pathname === '/business-services') return 'business-services';
+  if (pathname === '/live-tv' || pathname === '/livetv' || pathname === '/tv') return 'live-tv';
+  if (pathname === '/admin') return 'admin';
+
+  // Preserve older bookmarked hash URLs.
   const hash = window.location.hash.replace(/^#\/?/, '').toLowerCase();
   if (hash === 'services' || hash === 'business-services') return 'business-services';
   if (hash === 'live-tv' || hash === 'livetv' || hash === 'tv') return 'live-tv';
@@ -48,21 +54,21 @@ function readInitialViewFromHash(): ActiveView {
   return 'digital-store';
 }
 
-function viewToHash(view: ActiveView): string {
+function viewToPath(view: ActiveView): string {
   switch (view) {
     case 'business-services':
-      return '#/services';
+      return '/services';
     case 'live-tv':
-      return '#/live-tv';
+      return '/live-tv';
     case 'admin':
-      return '#/admin';
+      return '/admin';
     default:
-      return '#/store';
+      return '/';
   }
 }
 
 export default function App() {
-  const [activeView, setActiveView] = useState<ActiveView>(() => readInitialViewFromHash());
+  const [activeView, setActiveView] = useState<ActiveView>(() => readInitialViewFromLocation());
   const [adminInitialTab, setAdminInitialTab] = useState<AdminTab>('overview');
 
   // Buyer-facing storefront catalog
@@ -224,9 +230,9 @@ export default function App() {
       }
       setActiveView(view);
       setSearchQuery('');
-      const targetHash = viewToHash(view);
-      if (window.location.hash !== targetHash) {
-        window.history.pushState(null, '', targetHash);
+      const targetPath = viewToPath(view);
+      if (window.location.pathname !== targetPath || window.location.hash) {
+        window.history.pushState(null, '', targetPath);
       }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     },
