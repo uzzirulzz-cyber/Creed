@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AdminPanelView, type AdminTab } from './components/AdminPanelView';
+import { AiChatBoxSection } from './components/AiChatBoxSection';
 import { AuthModal } from './components/AuthModal';
 import { BusinessServicesSection } from './components/BusinessServicesSection';
 import { CheckoutDrawer } from './components/CheckoutDrawer';
@@ -45,6 +46,7 @@ function readInitialViewFromLocation(): ActiveView {
   const pathname = window.location.pathname.replace(/\/+$/, '').toLowerCase() || '/';
   if (pathname === '/services' || pathname === '/business-services') return 'business-services';
   if (pathname === '/live-tv' || pathname === '/livetv' || pathname === '/tv') return 'live-tv';
+  if (pathname === '/ai' || pathname === '/chat' || pathname === '/ai-chat') return 'ai-chat';
   if (pathname === '/admin') return 'admin';
 
   // Preserve older bookmarked hash URLs.
@@ -61,6 +63,8 @@ function viewToPath(view: ActiveView): string {
       return '/services';
     case 'live-tv':
       return '/live-tv';
+    case 'ai-chat':
+      return '/ai';
     case 'admin':
       return '/admin';
     default:
@@ -139,7 +143,9 @@ export default function App() {
           ? 'section2-services'
           : view === 'live-tv'
             ? 'section3-livetv'
-            : 'home';
+            : view === 'ai-chat'
+              ? 'section4-ai-chatbox'
+              : 'home';
       window.requestAnimationFrame(() => {
         document.getElementById(targetId)?.scrollIntoView({ behavior, block: 'start' });
       });
@@ -265,7 +271,9 @@ export default function App() {
             ? 'section2-services'
             : view === 'live-tv'
               ? 'section3-livetv'
-              : 'home';
+              : view === 'ai-chat'
+                ? 'section4-ai-chatbox'
+                : 'home';
         document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     },
@@ -369,6 +377,8 @@ export default function App() {
               onSelectView={(v) => handleSelectView(v)}
               onShowToast={showToast}
             />
+
+            <AiChatBoxSection />
 
             <StorefrontFooter
               currentPage="live-tv"
