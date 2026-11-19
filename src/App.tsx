@@ -8,6 +8,7 @@ import { LiveTvSection } from './components/LiveTvSection';
 import { type ActiveView, Navbar } from './components/Navbar';
 import { ProductDetailModal } from './components/ProductDetailModal';
 import { StorefrontView } from './components/StorefrontView';
+import { StorefrontFooter } from './components/StorefrontFooter';
 import type {
   BusinessService,
   CartItem,
@@ -234,7 +235,17 @@ export default function App() {
       if (window.location.pathname !== targetPath || window.location.hash) {
         window.history.pushState(null, '', targetPath);
       }
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (view === 'admin') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        const targetId =
+          view === 'business-services'
+            ? 'section2-services'
+            : view === 'live-tv'
+              ? 'section3-livetv'
+              : 'home';
+        document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     },
     [fetchAdminData],
   );
@@ -305,42 +316,44 @@ export default function App() {
       />
 
       <div className="flex-1">
-        {/* Digital products storefront */}
-        {activeView === 'digital-store' && (
-          <StorefrontView
-            digitalProducts={buyerDigitalProducts}
-            servicesCount={buyerBusinessServices.length}
-            liveChannelsCount={buyerLiveTvChannels.length}
-            searchQuery={searchQuery}
-            onClearSearch={() => setSearchQuery('')}
-            onAddToCart={handleAddToCart}
-            onInspectProduct={setInspectedProduct}
-            onSelectView={(v) => handleSelectView(v)}
-            onShowToast={showToast}
-          />
-        )}
+        {/* Public storefront: all three sections in the requested order. */}
+        {activeView !== 'admin' && (
+          <>
+            <StorefrontView
+              digitalProducts={buyerDigitalProducts}
+              servicesCount={buyerBusinessServices.length}
+              liveChannelsCount={buyerLiveTvChannels.length}
+              searchQuery={searchQuery}
+              onClearSearch={() => setSearchQuery('')}
+              onAddToCart={handleAddToCart}
+              onInspectProduct={setInspectedProduct}
+              onSelectView={(v) => handleSelectView(v)}
+              onShowToast={showToast}
+            />
 
-        {/* Business services storefront */}
-        {activeView === 'business-services' && (
-          <BusinessServicesSection
-            services={buyerBusinessServices}
-            globalSearch={searchQuery}
-            onAddToCart={handleAddToCart}
-            onSelectView={(v) => handleSelectView(v)}
-            onShowToast={showToast}
-          />
-        )}
+            <BusinessServicesSection
+              services={buyerBusinessServices}
+              globalSearch={searchQuery}
+              onAddToCart={handleAddToCart}
+              onSelectView={(v) => handleSelectView(v)}
+              onShowToast={showToast}
+            />
 
-        {/* PlayBeat Live TV storefront */}
-        {activeView === 'live-tv' && (
-          <LiveTvSection
-            channels={buyerLiveTvChannels}
-            plans={buyerLiveTvPlans}
-            globalSearch={searchQuery}
-            onAddToCart={handleAddToCart}
-            onSelectView={(v) => handleSelectView(v)}
-            onShowToast={showToast}
-          />
+            <LiveTvSection
+              channels={buyerLiveTvChannels}
+              plans={buyerLiveTvPlans}
+              globalSearch={searchQuery}
+              onAddToCart={handleAddToCart}
+              onSelectView={(v) => handleSelectView(v)}
+              onShowToast={showToast}
+            />
+
+            <StorefrontFooter
+              currentPage="live-tv"
+              onSelectView={(v) => handleSelectView(v)}
+              onShowToast={showToast}
+            />
+          </>
         )}
 
         {/* ADMIN PANEL */}
