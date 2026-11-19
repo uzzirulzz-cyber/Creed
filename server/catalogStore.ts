@@ -7,7 +7,6 @@ import type {
   Product,
   ServiceInquiry,
 } from '../src/types/store.ts';
-import { WORLDWIDE_ELECTRONICFIRST_CATALOG } from './catalogData.ts';
 import { PLAYBEAT_LIVE_TV_CHANNELS, PLAYBEAT_LIVE_TV_PLANS } from './liveTvCatalogData.ts';
 import { PLAYBEAT_BUSINESS_SERVICES } from './servicesCatalogData.ts';
 
@@ -28,12 +27,7 @@ export interface CatalogState {
 
 function buildDefaultState(): CatalogState {
   return {
-    digitalProducts: WORLDWIDE_ELECTRONICFIRST_CATALOG.map((p, idx) => ({
-      ...p,
-      publicCode: `PB-DIG-${String(idx + 101)}`,
-      published: true,
-      affiliatePartner: true,
-    })),
+    digitalProducts: [],
     businessServices: [...PLAYBEAT_BUSINESS_SERVICES],
     liveTvChannels: [...PLAYBEAT_LIVE_TV_CHANNELS],
     liveTvPlans: [...PLAYBEAT_LIVE_TV_PLANS],
@@ -156,7 +150,7 @@ export function getCatalogState(): CatalogState {
  */
 export function getBuyerDigitalProducts(): Product[] {
   return ensureStore()
-    .digitalProducts.filter((p) => p.published !== false)
+    .digitalProducts.filter((p) => p.published !== false && p.supplierVerified === true)
     .map((p) => ({
       ...p,
       productUrl: '', // Never expose supplier URL to storefront buyers
@@ -177,14 +171,12 @@ export function replaceSyncedDigitalProducts(synced: Product[]): Product[] {
       publicCode: prev?.publicCode || `PB-DIG-${String(idx + 101)}`,
       published: prev ? prev.published !== false : true,
       featured: prev?.featured ?? item.featured ?? idx < 7,
-      affiliatePartner: true,
+      affiliatePartner: false,
+      supplierVerified: true,
     };
   });
-  // Keep any admin-created custom PB-CUSTOM-* products too
-  const customOnly = state.digitalProducts.filter(
-    (p) => !merged.some((m) => m.sku === p.sku) && !p.sku.startsWith('EF-'),
-  );
-  state.digitalProducts = [...customOnly, ...merged];
+  // Section 1 is reserved for validated ElectronicFirst supplier products only.
+  state.digitalProducts = merged;
   state.lastPublishedSyncAt = new Date().toISOString();
   writeStore(state);
   return state.digitalProducts;
