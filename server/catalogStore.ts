@@ -152,8 +152,27 @@ export function getBuyerDigitalProducts(): Product[] {
   return ensureStore()
     .digitalProducts.filter((p) => p.published !== false && p.supplierVerified === true)
     .map((p) => ({
-      ...p,
-      productUrl: '', // Never expose supplier URL to storefront buyers
+      // Keep the existing storefront Product contract while returning only buyer-safe fields.
+      // The public cart identifier is PlayBeat's code, never the supplier SKU.
+      sku: p.publicCode || `PB-DIG-${p.sku.replace(/[^a-z0-9]/gi, '').slice(-8)}`,
+      publicCode: p.publicCode,
+      name: p.name,
+      category: p.category,
+      platform: p.platform,
+      region: p.region,
+      originalPriceUsd: p.originalPriceUsd,
+      priceUsd: p.priceUsd,
+      pricePkr: p.pricePkr,
+      discountPercent: p.discountPercent,
+      stockCount: p.stockCount,
+      stockStatus: p.stockStatus,
+      deliveryType: p.deliveryType,
+      productUrl: '',
+      imageUrl: p.imageUrl,
+      description: p.description,
+      activationGuide: p.activationGuide,
+      featured: p.featured,
+      published: p.published,
     }));
 }
 
@@ -319,7 +338,7 @@ export function resolvePurchasableItem(sku: string): {
   section: 'section1-digital' | 'section2-services' | 'section3-livetv';
 } | null {
   const state = ensureStore();
-  const prod = state.digitalProducts.find((p) => p.sku === sku);
+  const prod = state.digitalProducts.find((p) => p.sku === sku || p.publicCode === sku);
   if (prod) {
     return {
       sku: prod.sku,

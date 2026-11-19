@@ -23,7 +23,6 @@ import {
 import { useMemo, useState } from 'react';
 import type { Product } from '../types/store';
 import type { ActiveView } from './Navbar';
-import { StorefrontFooter } from './StorefrontFooter';
 
 type CategoryFilterId =
   | 'all'
@@ -577,11 +576,6 @@ export function StorefrontView({
         </section>
       </main>
 
-      <StorefrontFooter
-        currentPage="digital-store"
-        onSelectView={onSelectView}
-        onShowToast={onShowToast}
-      />
     </>
   );
 }

@@ -1,0 +1,24 @@
+{
+  "rewrites": [
+    {
+      "source": "/services",
+      "destination": "/"
+    },
+    {
+      "source": "/live-tv",
+      "destination": "/"
+    },
+    {
+      "source": "/admin",
+      "destination": "/"
+    },
+    {
+      "source": "/ai",
+      "destination": "/"
+    },
+    {
+      "source": "/chat",
+      "destination": "/"
+    }
+  ]
+}

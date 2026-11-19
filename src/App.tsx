@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AdminPanelView, type AdminTab } from './components/AdminPanelView';
+import { AiChatBoxSection } from './components/AiChatBoxSection';
 import { AuthModal } from './components/AuthModal';
 import { BusinessServicesSection } from './components/BusinessServicesSection';
 import { CheckoutDrawer } from './components/CheckoutDrawer';
@@ -8,6 +9,7 @@ import { LiveTvSection } from './components/LiveTvSection';
 import { type ActiveView, Navbar } from './components/Navbar';
 import { ProductDetailModal } from './components/ProductDetailModal';
 import { StorefrontView } from './components/StorefrontView';
+import { StorefrontFooter } from './components/StorefrontFooter';
 import type {
   BusinessService,
   CartItem,
@@ -38,12 +40,16 @@ const DEFAULT_STORE_CONFIG: PublicStoreConfig = {
     environment: 'TEST',
     sdkUrl: 'https://secure.rapid-gateway.com/sdk/v1/rapidpay.js',
   },
-  electronicFirst: {
-    configured: true,
-  },
 };
 
-function readInitialViewFromHash(): ActiveView {
+function readInitialViewFromLocation(): ActiveView {
+  const pathname = window.location.pathname.replace(/\/+$/, '').toLowerCase() || '/';
+  if (pathname === '/services' || pathname === '/business-services') return 'business-services';
+  if (pathname === '/live-tv' || pathname === '/livetv' || pathname === '/tv') return 'live-tv';
+  if (pathname === '/ai' || pathname === '/chat' || pathname === '/ai-chat') return 'ai-chat';
+  if (pathname === '/admin') return 'admin';
+
+  // Preserve older bookmarked hash URLs.
   const hash = window.location.hash.replace(/^#\/?/, '').toLowerCase();
   if (hash === 'services' || hash === 'business-services') return 'business-services';
   if (hash === 'live-tv' || hash === 'livetv' || hash === 'tv') return 'live-tv';
@@ -51,21 +57,23 @@ function readInitialViewFromHash(): ActiveView {
   return 'digital-store';
 }
 
-function viewToHash(view: ActiveView): string {
+function viewToPath(view: ActiveView): string {
   switch (view) {
     case 'business-services':
-      return '#/services';
+      return '/services';
     case 'live-tv':
-      return '#/live-tv';
+      return '/live-tv';
+    case 'ai-chat':
+      return '/ai';
     case 'admin':
-      return '#/admin';
+      return '/admin';
     default:
-      return '#/store';
+      return '/';
   }
 }
 
 export default function App() {
-  const [activeView, setActiveView] = useState<ActiveView>(() => readInitialViewFromHash());
+  const [activeView, setActiveView] = useState<ActiveView>(() => readInitialViewFromLocation());
   const [adminInitialTab, setAdminInitialTab] = useState<AdminTab>('overview');
 
   // Buyer-facing storefront catalog
@@ -125,13 +133,37 @@ export default function App() {
   }, [cart]);
 
   useEffect(() => {
-    const onHashChange = () => {
-      setActiveView(readInitialViewFromHash());
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    const scrollToSection = (view: ActiveView, behavior: ScrollBehavior = 'smooth') => {
+      if (view === 'admin') {
+        window.scrollTo({ top: 0, behavior });
+        return;
+      }
+      const targetId =
+        view === 'business-services'
+          ? 'section2-services'
+          : view === 'live-tv'
+            ? 'section3-livetv'
+            : view === 'ai-chat'
+              ? 'section4-ai-chatbox'
+              : 'home';
+      window.requestAnimationFrame(() => {
+        document.getElementById(targetId)?.scrollIntoView({ behavior, block: 'start' });
+      });
     };
-    window.addEventListener('hashchange', onHashChange);
-    return () => window.removeEventListener('hashchange', onHashChange);
-  }, []);
+
+    const onLocationChange = () => {
+      const view = readInitialViewFromLocation();
+      setActiveView(view);
+      scrollToSection(view);
+    };
+    window.addEventListener('popstate', onLocationChange);
+    window.addEventListener('hashchange', onLocationChange);
+    if (activeView !== 'digital-store') scrollToSection(activeView, 'auto');
+    return () => {
+      window.removeEventListener('popstate', onLocationChange);
+      window.removeEventListener('hashchange', onLocationChange);
+    };
+  }, [activeView]);
 
   const fetchBuyerCatalog = useCallback(async () => {
     try {
@@ -227,11 +259,23 @@ export default function App() {
       }
       setActiveView(view);
       setSearchQuery('');
-      const targetHash = viewToHash(view);
-      if (window.location.hash !== targetHash) {
-        window.history.pushState(null, '', targetHash);
+      const targetPath = viewToPath(view);
+      if (window.location.pathname !== targetPath || window.location.hash) {
+        window.history.pushState(null, '', targetPath);
       }
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (view === 'admin') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        const targetId =
+          view === 'business-services'
+            ? 'section2-services'
+            : view === 'live-tv'
+              ? 'section3-livetv'
+              : view === 'ai-chat'
+                ? 'section4-ai-chatbox'
+                : 'home';
+        document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     },
     [fetchAdminData],
   );
@@ -302,42 +346,46 @@ export default function App() {
       />
 
       <div className="flex-1">
-        {/* Digital products storefront */}
-        {activeView === 'digital-store' && (
-          <StorefrontView
-            digitalProducts={buyerDigitalProducts}
-            servicesCount={buyerBusinessServices.length}
-            liveChannelsCount={buyerLiveTvChannels.length}
-            searchQuery={searchQuery}
-            onClearSearch={() => setSearchQuery('')}
-            onAddToCart={handleAddToCart}
-            onInspectProduct={setInspectedProduct}
-            onSelectView={(v) => handleSelectView(v)}
-            onShowToast={showToast}
-          />
-        )}
+        {/* Public storefront: all three sections in the requested order. */}
+        {activeView !== 'admin' && (
+          <>
+            <StorefrontView
+              digitalProducts={buyerDigitalProducts}
+              servicesCount={buyerBusinessServices.length}
+              liveChannelsCount={buyerLiveTvChannels.length}
+              searchQuery={searchQuery}
+              onClearSearch={() => setSearchQuery('')}
+              onAddToCart={handleAddToCart}
+              onInspectProduct={setInspectedProduct}
+              onSelectView={(v) => handleSelectView(v)}
+              onShowToast={showToast}
+            />
 
-        {/* Business services storefront */}
-        {activeView === 'business-services' && (
-          <BusinessServicesSection
-            services={buyerBusinessServices}
-            globalSearch={searchQuery}
-            onAddToCart={handleAddToCart}
-            onSelectView={(v) => handleSelectView(v)}
-            onShowToast={showToast}
-          />
-        )}
+            <BusinessServicesSection
+              services={buyerBusinessServices}
+              globalSearch={searchQuery}
+              onAddToCart={handleAddToCart}
+              onSelectView={(v) => handleSelectView(v)}
+              onShowToast={showToast}
+            />
 
-        {/* PlayBeat Live TV storefront */}
-        {activeView === 'live-tv' && (
-          <LiveTvSection
-            channels={buyerLiveTvChannels}
-            plans={buyerLiveTvPlans}
-            globalSearch={searchQuery}
-            onAddToCart={handleAddToCart}
-            onSelectView={(v) => handleSelectView(v)}
-            onShowToast={showToast}
-          />
+            <LiveTvSection
+              channels={buyerLiveTvChannels}
+              plans={buyerLiveTvPlans}
+              globalSearch={searchQuery}
+              onAddToCart={handleAddToCart}
+              onSelectView={(v) => handleSelectView(v)}
+              onShowToast={showToast}
+            />
+
+            <AiChatBoxSection />
+
+            <StorefrontFooter
+              currentPage="live-tv"
+              onSelectView={(v) => handleSelectView(v)}
+              onShowToast={showToast}
+            />
+          </>
         )}
 
         {/* ADMIN PANEL */}

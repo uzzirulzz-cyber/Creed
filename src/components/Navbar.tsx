@@ -1,5 +1,6 @@
 import {
   Briefcase,
+  Bot,
   LogIn,
   LogOut,
   Menu,
@@ -14,7 +15,7 @@ import {
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 
-export type ActiveView = 'digital-store' | 'business-services' | 'live-tv' | 'admin';
+export type ActiveView = 'digital-store' | 'business-services' | 'live-tv' | 'ai-chat' | 'admin';
 
 interface NavbarProps {
   activeView: ActiveView;
@@ -59,6 +60,7 @@ export function Navbar({
     { id: 'digital-store', label: 'Digital Store', icon: ShoppingBag },
     { id: 'business-services', label: 'Business Services', icon: Briefcase },
     { id: 'live-tv', label: 'LIVE TV', icon: Tv, liveDot: true },
+    { id: 'ai-chat', label: 'AI Chat Box', icon: Bot },
   ];
 
   const searchPlaceholder =
@@ -66,7 +68,9 @@ export function Navbar({
       ? 'Search services...'
       : activeView === 'live-tv'
         ? 'Search live channels...'
-        : 'Search digital products...';
+        : activeView === 'ai-chat'
+          ? 'PlayBeat AI Studio'
+          : 'Search digital products...';
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
