@@ -273,7 +273,7 @@ export function StorefrontView({
           })}
         </nav>
 
-        {/* Digital Products Grid (Affiliate Partner Catalog) */}
+        {/* Digital Products Grid */}
         <section id="digital-products-grid" className="scroll-mt-20">
           <div className="flex flex-wrap justify-between items-end mt-10 gap-4">
             <div>
@@ -559,7 +559,7 @@ export function StorefrontView({
               { icon: ShieldCheck, title: 'Multi-Rail Checkout', desc: 'Rapid PKR, PayPal & Manual' },
               { icon: Headphones, title: '24/7 Support', desc: 'Dedicated Playbeat desk' },
               { icon: UserCheck, title: 'Business Agency', desc: '32 enterprise service packages' },
-              { icon: Diamond, title: 'Best Prices', desc: 'Direct affiliate partner savings' },
+              { icon: Diamond, title: 'Best Prices', desc: 'Competitive digital product pricing' },
             ].map((card) => {
               const Icon = card.icon;
               return (
