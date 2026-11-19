@@ -38,9 +38,6 @@ const DEFAULT_STORE_CONFIG: PublicStoreConfig = {
     environment: 'TEST',
     sdkUrl: 'https://secure.rapid-gateway.com/sdk/v1/rapidpay.js',
   },
-  electronicFirst: {
-    configured: true,
-  },
 };
 
 function readInitialViewFromHash(): ActiveView {
