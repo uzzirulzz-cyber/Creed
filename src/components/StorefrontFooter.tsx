@@ -1,0 +1,246 @@
+import { Copy, Mail, MapPin, Phone, Send } from 'lucide-react';
+import { useState } from 'react';
+import type { ActiveView } from './Navbar';
+
+interface StorefrontFooterProps {
+  currentPage: Exclude<ActiveView, 'admin'>;
+  onSelectView: (view: ActiveView) => void;
+  onShowToast: (msg: string) => void;
+}
+
+export function StorefrontFooter({
+  currentPage,
+  onSelectView,
+  onShowToast,
+}: StorefrontFooterProps) {
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+
+  const nextAction =
+    currentPage === 'digital-store'
+      ? {
+          title: 'Need a Custom Website, CRM, or Automation?',
+          subtitle: 'Explore 32 done-for-you Playbeat Digital Business Services.',
+          ctaLabel: 'Explore Business Services →',
+          target: 'business-services' as const,
+        }
+      : currentPage === 'business-services'
+        ? {
+            title: 'Stream Live Broadcast Channels Inside Playbeat',
+            subtitle: 'Open Playbeat LIVE TV for real-time HD channels and 4K streaming passes.',
+            ctaLabel: 'Watch Playbeat LIVE TV →',
+            target: 'live-tv' as const,
+          }
+        : {
+            title: 'Looking for Worldwide Digital Keys & Subscriptions?',
+            subtitle: 'Browse instant-delivery games, passes, gift cards, and software keys.',
+            ctaLabel: 'Explore Digital Store →',
+            target: 'digital-store' as const,
+          };
+
+  const handleCopy = (label: string, value: string) => {
+    if (navigator.clipboard) {
+      void navigator.clipboard.writeText(value);
+    }
+    onShowToast(`${label} copied: ${value}`);
+  };
+
+  const handleNewsletterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newsletterEmail.trim()) return;
+    setNewsletterEmail('');
+    onShowToast('Thanks, you are subscribed to Playbeat Digital drops & updates.');
+  };
+
+  return (
+    <>
+      {/* Playbeat CTA Strip */}
+      <section className="mt-12 border-y border-[#1d4ed8] bg-gradient-to-r from-[#1b3fb5] via-[#0b1f63] to-[#241f86]">
+        <div className="max-w-[1180px] mx-auto px-4 sm:px-6 py-4 flex flex-col md:flex-row items-center gap-5">
+          <div className="text-center md:text-left md:pl-6">
+            <h2 className="text-xl font-bold">{nextAction.title}</h2>
+            <p className="text-[13px] font-medium text-[#e6eeff]">{nextAction.subtitle}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => onSelectView(nextAction.target)}
+            className="yb rounded-full px-8 h-[38px] inline-flex items-center text-[12px] font-bold shrink-0"
+          >
+            {nextAction.ctaLabel}
+          </button>
+          <img
+            src="/assets/playbeat/cta-showcase.webp"
+            width={296}
+            height={78}
+            alt=""
+            className="hidden md:block ml-auto h-[82px] w-auto -my-3 object-contain"
+            loading="lazy"
+          />
+        </div>
+      </section>
+
+      {/* Playbeat Digital Footer — Official Contact Details from Playbeat Source */}
+      <footer id="contact" className="bg-[#040d29]">
+        <div className="max-w-[1180px] mx-auto px-4 sm:px-6 pt-7 pb-5 grid grid-cols-2 lg:grid-cols-[1.35fr_.95fr_1.1fr_1.2fr_1.4fr] gap-6 text-[11px]">
+          <div className="col-span-2 lg:col-span-1">
+            <img
+              src="/assets/playbeat/logo-footer.webp"
+              width={182}
+              height={48}
+              alt="Playbeat Digital"
+              className="h-11 w-auto object-contain"
+              loading="lazy"
+            />
+            <p className="mt-3 text-[11px] font-medium text-[#c8d3ea]">
+              Playbeat Digital Private Limited — Worldwide Digital Products, Business Services &amp; LIVE TV.
+            </p>
+            <p className="mt-2 text-[10.5px] text-[#9eb2db] flex items-start gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-[#ffd958] shrink-0 mt-0.5" />
+              <span>HOUSE 334, Street 6, Jinnahabad, Abbottabad, Pakistan</span>
+            </p>
+          </div>
+
+          <div>
+            <h4 className="font-bold text-[13px] mb-3">Explore</h4>
+            <ul className="space-y-1.5 text-[11px] text-[#c8d3ea]">
+              <li>
+                <button
+                  type="button"
+                  onClick={() => onSelectView('digital-store')}
+                  className={`cursor-pointer ${
+                    currentPage === 'digital-store'
+                      ? 'text-[#ffd958] font-bold'
+                      : 'hover:text-[#1ea0ff]'
+                  }`}
+                >
+                  Digital Store
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => onSelectView('business-services')}
+                  className={`cursor-pointer ${
+                    currentPage === 'business-services'
+                      ? 'text-[#ffd958] font-bold'
+                      : 'hover:text-[#1ea0ff]'
+                  }`}
+                >
+                  Business Services
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => onSelectView('live-tv')}
+                  className={`cursor-pointer ${
+                    currentPage === 'live-tv'
+                      ? 'text-[#ffd958] font-bold'
+                      : 'hover:text-[#1ea0ff]'
+                  }`}
+                >
+                  Playbeat LIVE TV
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => onSelectView('admin')}
+                  className="hover:text-[#ffd958] cursor-pointer"
+                >
+                  Merchant Admin Portal
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-bold text-[13px] mb-3">WhatsApp Desks</h4>
+            <ul className="space-y-1.5 text-[11px] text-[#c8d3ea]">
+              {[
+                { label: 'Orders', num: '+92 332 1029333' },
+                { label: 'Support', num: '+92 332 1049333' },
+                { label: 'Escalations', num: '+92 334 1079333' },
+                { label: 'Agency', num: '+92 319 9980011' },
+              ].map((line) => (
+                <li key={line.num}>
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(`WhatsApp ${line.label}`, line.num)}
+                    className="inline-flex items-center gap-1.5 hover:text-[#ffd958] transition-colors cursor-pointer text-left"
+                  >
+                    <Phone className="w-3 h-3 text-[#1ea0ff] shrink-0" />
+                    <span className="font-mono">{line.num}</span>
+                    <Copy className="w-2.5 h-2.5 opacity-60" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-bold text-[13px] mb-3">Official Contact</h4>
+            <ul className="space-y-1.5 text-[11px] text-[#c8d3ea]">
+              <li>
+                <button
+                  type="button"
+                  onClick={() => handleCopy('Support Email', 'support@playbeat.digital')}
+                  className="inline-flex items-center gap-1.5 hover:text-[#ffd958] cursor-pointer"
+                >
+                  <Mail className="w-3 h-3 text-[#ffd958] shrink-0" />
+                  <span>support@playbeat.digital</span>
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => handleCopy('Pro Desk Email', 'support@playbeat.pro')}
+                  className="inline-flex items-center gap-1.5 hover:text-[#ffd958] cursor-pointer"
+                >
+                  <Mail className="w-3 h-3 text-[#1ea0ff] shrink-0" />
+                  <span>support@playbeat.pro</span>
+                </button>
+              </li>
+              <li className="text-[#9eb2db]">Instagram: @playbeat_digital</li>
+              <li className="text-[#9eb2db]">TikTok: @playbeatdigital</li>
+            </ul>
+          </div>
+
+          <div className="col-span-2 lg:col-span-1">
+            <h4 className="font-bold text-[13px] mb-1">Stay Updated</h4>
+            <p className="text-[11px] text-[#c8d3ea] mb-3">
+              Get Playbeat Digital deals, service launches &amp; LIVE TV alerts.
+            </p>
+            <form
+              onSubmit={handleNewsletterSubmit}
+              className="ob rounded-full flex items-center bg-[#030a1f99] pl-4 pr-1 h-[32px]"
+            >
+              <input
+                type="email"
+                required
+                value={newsletterEmail}
+                onChange={(e) => setNewsletterEmail(e.target.value)}
+                placeholder="Enter your email address"
+                aria-label="Email address"
+                className="bg-transparent outline-none w-full text-[11px] text-[#f2f6ff]"
+              />
+              <button
+                type="submit"
+                aria-label="Subscribe"
+                className="w-6 h-6 shrink-0 rounded-full bg-[#1ea0ff] hover:bg-[#2f8bff] grid place-items-center text-white cursor-pointer"
+              >
+                <Send className="w-3 h-3" aria-hidden="true" />
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <div className="border-t border-[#1d4ed844]">
+          <div className="max-w-[1180px] mx-auto px-4 sm:px-6 py-3 flex flex-wrap justify-between gap-2 text-[11px] font-medium text-[#c8d3ea]">
+            <span>© {new Date().getFullYear()} Playbeat Digital Private Limited. All rights reserved.</span>
+            <span>Digital Store &nbsp;|&nbsp; Business Services &nbsp;|&nbsp; LIVE TV</span>
+          </div>
+        </div>
+      </footer>
+    </>
+  );
+}

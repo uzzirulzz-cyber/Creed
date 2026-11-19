@@ -1,0 +1,405 @@
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { AdminPanelView, type AdminTab } from './components/AdminPanelView';
+import { AuthModal } from './components/AuthModal';
+import { BusinessServicesSection } from './components/BusinessServicesSection';
+import { CheckoutDrawer } from './components/CheckoutDrawer';
+import type { WebhookLogEntry } from './components/IntegrationsView';
+import { LiveTvSection } from './components/LiveTvSection';
+import { type ActiveView, Navbar } from './components/Navbar';
+import { ProductDetailModal } from './components/ProductDetailModal';
+import { StorefrontView } from './components/StorefrontView';
+import type {
+  BusinessService,
+  CartItem,
+  ElectronicFirstSyncResult,
+  IntegrationReadiness,
+  LiveTvChannel,
+  LiveTvPlan,
+  OrderRecord,
+  Product,
+  PublicStoreConfig,
+  ServiceInquiry,
+} from './types/store';
+
+const CART_STORAGE_KEY = 'pb_cart_v3';
+
+const DEFAULT_STORE_CONFIG: PublicStoreConfig = {
+  storeName: 'Playbeat Digital',
+  pkrPerUsd: 278.5,
+  defaultRail: 'rapid',
+  paypal: {
+    enabled: true,
+    clientId: '',
+    environment: 'sandbox',
+  },
+  rapid: {
+    enabled: true,
+    merchantId: '1367',
+    environment: 'TEST',
+    sdkUrl: 'https://secure.rapid-gateway.com/sdk/v1/rapidpay.js',
+  },
+  electronicFirst: {
+    configured: true,
+  },
+};
+
+function readInitialViewFromHash(): ActiveView {
+  const hash = window.location.hash.replace(/^#\/?/, '').toLowerCase();
+  if (hash === 'services' || hash === 'business-services') return 'business-services';
+  if (hash === 'live-tv' || hash === 'livetv' || hash === 'tv') return 'live-tv';
+  if (hash === 'admin') return 'admin';
+  return 'digital-store';
+}
+
+function viewToHash(view: ActiveView): string {
+  switch (view) {
+    case 'business-services':
+      return '#/services';
+    case 'live-tv':
+      return '#/live-tv';
+    case 'admin':
+      return '#/admin';
+    default:
+      return '#/store';
+  }
+}
+
+export default function App() {
+  const [activeView, setActiveView] = useState<ActiveView>(() => readInitialViewFromHash());
+  const [adminInitialTab, setAdminInitialTab] = useState<AdminTab>('overview');
+
+  // Buyer-facing sanitized catalog (3 pages)
+  const [buyerDigitalProducts, setBuyerDigitalProducts] = useState<Product[]>([]);
+  const [buyerBusinessServices, setBuyerBusinessServices] = useState<BusinessService[]>([]);
+  const [buyerLiveTvChannels, setBuyerLiveTvChannels] = useState<LiveTvChannel[]>([]);
+  const [buyerLiveTvPlans, setBuyerLiveTvPlans] = useState<LiveTvPlan[]>([]);
+
+  // Admin-only full catalog (includes hidden items, confidential supplier URLs & inquiries)
+  const [adminDigitalProducts, setAdminDigitalProducts] = useState<Product[]>([]);
+  const [adminBusinessServices, setAdminBusinessServices] = useState<BusinessService[]>([]);
+  const [adminLiveTvChannels, setAdminLiveTvChannels] = useState<LiveTvChannel[]>([]);
+  const [adminLiveTvPlans, setAdminLiveTvPlans] = useState<LiveTvPlan[]>([]);
+  const [serviceInquiries, setServiceInquiries] = useState<ServiceInquiry[]>([]);
+
+  const [orders, setOrders] = useState<OrderRecord[]>([]);
+  const [storeConfig, setStoreConfig] = useState<PublicStoreConfig>(DEFAULT_STORE_CONFIG);
+  const [readiness, setReadiness] = useState<IntegrationReadiness | null>(null);
+  const [syncStatus, setSyncStatus] = useState<ElectronicFirstSyncResult | null>(null);
+  const [webhookLogs, setWebhookLogs] = useState<WebhookLogEntry[]>([]);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    try {
+      const saved = localStorage.getItem(CART_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {
+      // ignore storage errors
+    }
+    return [];
+  });
+  const [cartPopKey, setCartPopKey] = useState(0);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [inspectedProduct, setInspectedProduct] = useState<Product | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = useCallback((msg: string) => {
+    setToastMessage(msg);
+  }, []);
+
+  useEffect(() => {
+    if (!toastMessage) return;
+    const t = window.setTimeout(() => setToastMessage(null), 3000);
+    return () => window.clearTimeout(t);
+  }, [toastMessage]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+    } catch {
+      // ignore storage errors
+    }
+  }, [cart]);
+
+  useEffect(() => {
+    const onHashChange = () => {
+      setActiveView(readInitialViewFromHash());
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  const fetchBuyerCatalog = useCallback(async () => {
+    try {
+      const [catRes, cfgRes] = await Promise.all([
+        fetch('/api/storefront/catalog'),
+        fetch('/api/config'),
+      ]);
+      if (catRes.ok) {
+        const data = await catRes.json();
+        if (Array.isArray(data.section1DigitalProducts)) {
+          setBuyerDigitalProducts(data.section1DigitalProducts);
+        }
+        if (Array.isArray(data.section2BusinessServices)) {
+          setBuyerBusinessServices(data.section2BusinessServices);
+        }
+        if (Array.isArray(data.section3LiveTvChannels)) {
+          setBuyerLiveTvChannels(data.section3LiveTvChannels);
+        }
+        if (Array.isArray(data.section3LiveTvPlans)) {
+          setBuyerLiveTvPlans(data.section3LiveTvPlans);
+        }
+      }
+      if (cfgRes.ok) {
+        const cfg = (await cfgRes.json()) as PublicStoreConfig;
+        setStoreConfig(cfg);
+      }
+    } catch {
+      // non-fatal
+    }
+  }, []);
+
+  const fetchAdminData = useCallback(async () => {
+    try {
+      const [adminRes, ordersRes, diagRes] = await Promise.all([
+        fetch('/api/admin/catalog'),
+        fetch('/api/orders'),
+        fetch('/api/integrations/readiness'),
+      ]);
+      if (adminRes.ok) {
+        const data = await adminRes.json();
+        if (Array.isArray(data.digitalProducts)) setAdminDigitalProducts(data.digitalProducts);
+        if (Array.isArray(data.businessServices)) setAdminBusinessServices(data.businessServices);
+        if (Array.isArray(data.liveTvChannels)) setAdminLiveTvChannels(data.liveTvChannels);
+        if (Array.isArray(data.liveTvPlans)) setAdminLiveTvPlans(data.liveTvPlans);
+        if (Array.isArray(data.serviceInquiries)) setServiceInquiries(data.serviceInquiries);
+        if (data.sync) setSyncStatus(data.sync);
+      }
+      if (ordersRes.ok) {
+        const data = await ordersRes.json();
+        if (Array.isArray(data.orders)) setOrders(data.orders);
+      }
+      if (diagRes.ok) {
+        const diag = await diagRes.json();
+        if (diag.readiness) setReadiness(diag.readiness);
+        if (diag.syncStatus) setSyncStatus(diag.syncStatus);
+        if (Array.isArray(diag.webhookLogs)) setWebhookLogs(diag.webhookLogs);
+      }
+    } catch {
+      // non-fatal
+    }
+  }, []);
+
+  const refreshAll = useCallback(async () => {
+    await Promise.all([fetchBuyerCatalog(), fetchAdminData()]);
+  }, [fetchBuyerCatalog, fetchAdminData]);
+
+  useEffect(() => {
+    void refreshAll();
+  }, [refreshAll]);
+
+  const handleSyncElectronicFirst = useCallback(async () => {
+    setIsSyncing(true);
+    try {
+      const res = await fetch('/api/admin/electronicfirst/sync', { method: 'POST' });
+      const data = await res.json();
+      if (data.sync) {
+        setSyncStatus(data.sync);
+        showToast(data.sync.message);
+      }
+      await refreshAll();
+    } catch {
+      showToast('Could not reach Partner API sync endpoint.');
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [refreshAll, showToast]);
+
+  const handleSelectView = useCallback(
+    (view: ActiveView, adminTab: AdminTab = 'overview') => {
+      if (view === 'admin') {
+        setAdminInitialTab(adminTab);
+        void fetchAdminData();
+      }
+      setActiveView(view);
+      setSearchQuery('');
+      const targetHash = viewToHash(view);
+      if (window.location.hash !== targetHash) {
+        window.history.pushState(null, '', targetHash);
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    [fetchAdminData],
+  );
+
+  const handleAddToCart = useCallback(
+    (sku: string) => {
+      const prod = buyerDigitalProducts.find((p) => p.sku === sku);
+      const svc = buyerBusinessServices.find((s) => s.sku === sku);
+      const plan = buyerLiveTvPlans.find((pl) => pl.sku === sku);
+      const itemName = prod?.name || svc?.name || plan?.name || sku;
+
+      setCart((prev) => {
+        const existing = prev.find((i) => i.sku === sku);
+        if (existing) {
+          return prev.map((i) => (i.sku === sku ? { ...i, quantity: i.quantity + 1 } : i));
+        }
+        return [...prev, { sku, quantity: 1 }];
+      });
+      setCartPopKey((k) => k + 1);
+      showToast(`${itemName} added to Playbeat cart.`);
+    },
+    [buyerDigitalProducts, buyerBusinessServices, buyerLiveTvPlans, showToast],
+  );
+
+  const handleUpdateCartQty = useCallback((sku: string, delta: number) => {
+    setCart((prev) =>
+      prev
+        .map((i) => (i.sku === sku ? { ...i, quantity: i.quantity + delta } : i))
+        .filter((i) => i.quantity > 0),
+    );
+  }, []);
+
+  const handleRemoveCartItem = useCallback((sku: string) => {
+    setCart((prev) => prev.filter((i) => i.sku !== sku));
+  }, []);
+
+  const handleClearCart = useCallback(() => {
+    setCart([]);
+  }, []);
+
+  const handleOrderUpsert = useCallback((order: OrderRecord) => {
+    setOrders((prev) => {
+      const idx = prev.findIndex((o) => o.orderId === order.orderId);
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = order;
+        return copy;
+      }
+      return [order, ...prev];
+    });
+  }, []);
+
+  const cartCount = useMemo(() => cart.reduce((sum, item) => sum + item.quantity, 0), [cart]);
+  const adminBadgeCount = orders.length + serviceInquiries.length;
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Navbar
+        activeView={activeView}
+        onSelectView={(v) => handleSelectView(v)}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        cartCount={cartCount}
+        cartPopKey={cartPopKey}
+        onOpenCart={() => setIsCartOpen(true)}
+        adminBadgeCount={adminBadgeCount}
+        onShowToast={showToast}
+      />
+
+      <div className="flex-1">
+        {/* PAGE 1 (LANDING PAGE): DIGITAL STORE & PRODUCTS */}
+        {activeView === 'digital-store' && (
+          <StorefrontView
+            digitalProducts={buyerDigitalProducts}
+            servicesCount={buyerBusinessServices.length}
+            liveChannelsCount={buyerLiveTvChannels.length}
+            searchQuery={searchQuery}
+            onClearSearch={() => setSearchQuery('')}
+            onAddToCart={handleAddToCart}
+            onInspectProduct={setInspectedProduct}
+            onSelectView={(v) => handleSelectView(v)}
+            onShowToast={showToast}
+          />
+        )}
+
+        {/* PAGE 2: BUSINESS SERVICES */}
+        {activeView === 'business-services' && (
+          <BusinessServicesSection
+            services={buyerBusinessServices}
+            globalSearch={searchQuery}
+            onAddToCart={handleAddToCart}
+            onSelectView={(v) => handleSelectView(v)}
+            onShowToast={showToast}
+          />
+        )}
+
+        {/* PAGE 3: PLAYBEAT LIVE TV */}
+        {activeView === 'live-tv' && (
+          <LiveTvSection
+            channels={buyerLiveTvChannels}
+            plans={buyerLiveTvPlans}
+            globalSearch={searchQuery}
+            onAddToCart={handleAddToCart}
+            onSelectView={(v) => handleSelectView(v)}
+            onShowToast={showToast}
+          />
+        )}
+
+        {/* ADMIN PANEL */}
+        {activeView === 'admin' && (
+          <AdminPanelView
+            key={adminInitialTab}
+            initialTab={adminInitialTab}
+            digitalProducts={adminDigitalProducts}
+            businessServices={adminBusinessServices}
+            liveTvChannels={adminLiveTvChannels}
+            liveTvPlans={adminLiveTvPlans}
+            serviceInquiries={serviceInquiries}
+            orders={orders}
+            readiness={readiness}
+            syncStatus={syncStatus}
+            webhookLogs={webhookLogs}
+            isSyncing={isSyncing}
+            onSyncElectronicFirst={handleSyncElectronicFirst}
+            onRefreshAll={refreshAll}
+            onOrderUpdated={handleOrderUpsert}
+            onBackToStorefront={() => handleSelectView('digital-store')}
+            onShowToast={showToast}
+          />
+        )}
+      </div>
+
+      <ProductDetailModal
+        product={inspectedProduct}
+        onClose={() => setInspectedProduct(null)}
+        onAddToCart={handleAddToCart}
+      />
+
+      <AuthModal onShowToast={showToast} />
+
+      <CheckoutDrawer
+        isCartOpen={isCartOpen}
+        onCloseCart={() => setIsCartOpen(false)}
+        cart={cart}
+        products={buyerDigitalProducts}
+        businessServices={buyerBusinessServices}
+        liveTvPlans={buyerLiveTvPlans}
+        storeConfig={storeConfig}
+        onUpdateQty={handleUpdateCartQty}
+        onRemoveItem={handleRemoveCartItem}
+        onClearCart={handleClearCart}
+        onOrderCreated={handleOrderUpsert}
+        onOpenAdminOrders={() => handleSelectView('admin', 'orders')}
+        onShowToast={showToast}
+      />
+
+      {/* Playbeat Digital Glowing Toast Notification */}
+      <div
+        role="status"
+        aria-live="polite"
+        className={`edge-solid rounded-xl px-4 py-3 text-xs font-semibold text-[#f2f6ff] fixed right-4 bottom-4 z-[80] max-w-sm transition-all duration-200 ${
+          toastMessage
+            ? 'opacity-100 translate-y-0 pointer-events-auto'
+            : 'opacity-0 translate-y-2 pointer-events-none'
+        }`}
+      >
+        {toastMessage}
+      </div>
+    </div>
+  );
+}
