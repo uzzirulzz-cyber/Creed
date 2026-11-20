@@ -1,4 +1,4 @@
-import { Copy, Mail, MapPin, Phone, Send } from 'lucide-react';
+import { Copy, Gamepad2, Globe, Mail, MapPin, MonitorPlay, Phone, Radio, Send, Tv } from 'lucide-react';
 import { useState } from 'react';
 import type { ActiveView } from './Navbar';
 
@@ -75,6 +75,48 @@ export function StorefrontFooter({
             className="hidden md:block ml-auto h-[82px] w-auto -my-3 object-contain"
             loading="lazy"
           />
+        </div>
+      </section>
+
+      {/* PlayBeat Network — five independent destination tiles */}
+      <section aria-label="Explore the PlayBeat network" className="border-y border-[#294b86] bg-[radial-gradient(ellipse_at_top,rgba(37,99,235,.22),transparent_65%),linear-gradient(110deg,#07142f,#030817_55%,#101b3d)]">
+        <div className="max-w-[1180px] mx-auto px-4 sm:px-6 py-7">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-4">
+            <div>
+              <p className="text-[10px] tracking-[.28em] uppercase font-bold text-[#76b7ff]">The PlayBeat Network</p>
+              <h3 className="text-lg sm:text-xl font-extrabold text-white mt-1">One Network. Five Destinations.</h3>
+            </div>
+            <p className="text-[11px] text-[#aebfdf]">Choose a destination to visit its website.</p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+            {[
+              { name: 'PlayBeat Live', url: 'https://www.playbeat.live', note: 'Live experiences', Icon: Radio },
+              { name: 'PlayBeat Arena', url: 'https://www.playbeatarena.online', note: 'Arena network', Icon: Gamepad2 },
+              { name: 'PlayBeat Digital', url: 'https://www.playbeatdigital.world', note: 'Digital world', Icon: Globe },
+              { name: 'PlayBeat Arena Asia', url: 'https://www.playbeatarena.asia', note: 'Asia destination', Icon: Tv },
+              { name: 'PlayBeat TV', url: 'https://www.playbeattv.buzz', note: 'Watch & stream', Icon: MonitorPlay },
+            ].map(({ name, url, note, Icon }) => (
+              <a
+                key={url}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Visit ${name}`}
+                className="group min-h-[104px] rounded-xl border border-[#5477ad66] bg-[#10254a99] px-3 py-3 flex flex-col justify-between transition-all duration-200 hover:-translate-y-1 hover:border-[#66b7ff] hover:bg-[#183867] hover:shadow-[0_10px_30px_rgba(0,90,220,.2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#78c2ff]"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="grid place-items-center w-8 h-8 rounded-lg bg-[#1e4b83] text-[#9bd0ff] group-hover:text-white group-hover:bg-[#2674c9]">
+                    <Icon className="w-4 h-4" aria-hidden="true" />
+                  </span>
+                  <span className="text-[9px] tracking-wider uppercase text-[#85a9d7]">Visit ↗</span>
+                </div>
+                <span>
+                  <span className="block text-[12px] font-bold text-white leading-tight">{name}</span>
+                  <span className="block text-[10px] text-[#aebfdf] mt-1">{note}</span>
+                </span>
+              </a>
+            ))}
+          </div>
         </div>
       </section>
 
